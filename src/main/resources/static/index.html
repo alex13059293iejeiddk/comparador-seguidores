@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Comparador de Seguidores</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Análisis de Seguidores</h1><br>
+
+    <form id="formulario">
+      <label for="seguidos">Archivo de seguidos (following.json):</label>
+      <input type="file" name="seguidos" id="seguidos" required>
+
+      <label for="seguidores">Archivo de seguidores (followers_1.json):</label>
+      <input type="file" name="seguidores" id="seguidores" required>
+
+      <label for="tipo">¿Qué deseas ver?</label>
+      <select name="tipo" id="tipo" required>
+        <option value="seguidos">Seguidos</option>
+        <option value="seguidores">Seguidores</option>
+        <option value="no_seguidores">Sigues pero no te siguen</option>
+        <option value="no_seguidos">Te siguen pero no los sigues</option>
+      </select>
+
+      <button type="submit">Descargar resultado</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("formulario").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const res = await fetch("/comparar", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!res.ok) {
+        alert("Hubo un error al procesar los archivos.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition && disposition.match(/filename="(.+)"/);
+      a.download = match ? match[1] : "resultado.txt";
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
