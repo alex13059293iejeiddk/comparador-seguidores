@@ -1,22 +1,24 @@
-# Usa una imagen oficial de Java 17 (o la versión que uses)
 FROM eclipse-temurin:17-jdk-jammy
 
-# Carpeta donde se colocará la app dentro del contenedor
 WORKDIR /app
 
-# Copia el archivo pom.xml y la carpeta src
+# Copiar archivos necesarios para build
 COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
 COPY src ./src
 
-# Descarga dependencias y empaqueta la app
+# Dar permisos para ejecutar mvnw
+RUN chmod +x mvnw
+
+# Construir el proyecto y saltar tests
 RUN ./mvnw clean package -DskipTests
 
-# Copia el archivo JAR generado al contenedor
-COPY target/*.jar app.jar
+# Copiar el jar construido
+COPY target/comparador-seguidores-0.0.1-SNAPSHOT.jar app.jar
 
-# Comando para ejecutar la app
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# Exponer puerto 8080 para la app
+# Exponer puerto 8080
 EXPOSE 8080
 
+# Ejecutar la app
+ENTRYPOINT ["java","-jar","/app/app.jar"]
