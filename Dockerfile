@@ -1,24 +1,24 @@
+# Etapa 1: Build
+FROM eclipse-temurin:17-jdk-jammy AS builder
+
+WORKDIR /app
+
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src ./src
+
+RUN chmod +x mvnw
+RUN ./mvnw clean package -DskipTests
+
+# Etapa 2: Runtime
 FROM eclipse-temurin:17-jdk-jammy
 
 WORKDIR /app
 
-# Copiar archivos necesarios para build
-COPY pom.xml .
-COPY mvnw .
-COPY .mvn .mvn
-COPY src ./src
+# Copiar el JAR generado desde la etapa builder
+COPY --from=builder /app/target/comparador-seguidores-0.0.1-SNAPSHOT.jar app.jar
 
-# Dar permisos para ejecutar mvnw
-RUN chmod +x mvnw
-
-# Construir el proyecto y saltar tests
-RUN ./mvnw clean package -DskipTests
-
-# Copiar el jar construido
-COPY target/comparador-seguidores-0.0.1-SNAPSHOT.jar app.jar
-
-# Exponer puerto 8080
 EXPOSE 8080
 
-# Ejecutar la app
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
